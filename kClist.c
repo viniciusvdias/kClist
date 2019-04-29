@@ -311,16 +311,23 @@ void mkspecial(specialsparse *g, unsigned char k){
 }
 
 
-void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
+void kclique(unsigned* clique, unsigned l, unsigned cliqueSize, specialsparse *g, unsigned long long *n) {
 	unsigned i,j,k,end,u,v,w;
 
 	if(l==2){
 		for(i=0; i<g->ns[2]; i++){//list all edges
 			u=g->sub[2][i];
+                        clique[cliqueSize - l] = u;
 			//(*n)+=g->d[2][u];
 			end=g->cd[u]+g->d[2][u];
 			for (j=g->cd[u];j<end;j++) {
+                           clique[cliqueSize - 1] = g->adj[j];
 				(*n)++;//listing here!!!  // NOTE THAT WE COULD DO (*n)+=g->d[2][u] to be much faster (for counting only); !!!!!!!!!!!!!!!!!!
+                           printf("# ");
+                           for (k=0; k<cliqueSize; ++k) {
+                              printf("%u ", clique[k]);
+                           }
+                           printf("\n");
 			}
 		}
 		return;
@@ -354,7 +361,9 @@ void kclique(unsigned l, specialsparse *g, unsigned long long *n) {
 			}
 		}
 
-		kclique(l-1, g, n);
+                clique[cliqueSize - l] = u;
+
+		kclique(clique, l-1, cliqueSize, g, n);
 
 		for (j=0;j<g->ns[l-1];j++){//restoring labels
 			v=g->sub[l-1][j];
@@ -400,8 +409,12 @@ int main(int argc,char** argv){
 
 	printf("Iterate over all cliques\n");
 
+        unsigned* clique = (unsigned*) malloc(k * sizeof(unsigned));
+
 	n=0;
-	kclique(k, g, &n);
+	kclique(clique, k, k, g, &n);
+
+        free(clique);
 
 	printf("Number of %u-cliques: %llu\n",k,n);
 
