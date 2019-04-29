@@ -36,7 +36,7 @@ typedef struct {
 
 
 typedef struct {
-
+   
 	unsigned n;//number of nodes
 	unsigned e;//number of edges
 	edge *edges;//list of edges
@@ -46,7 +46,7 @@ typedef struct {
 	unsigned *cd;//cumulative degree: (starts with 0) length=n+1
 	unsigned *adj;//truncated list of neighbors
 	unsigned *rank;//ranking of the nodes according to degeneracy ordering
-	//unsigned *map;//oldID newID correspondance
+	unsigned *map;//oldID newID correspondance
 
 	unsigned char *lab;//lab[i] label of node i
 	unsigned **sub;//sub[l]: nodes in G_l
@@ -65,6 +65,8 @@ void freespecialsparse(specialsparse *g, unsigned char k){
 	free(g->sub);
 	free(g->cd);
 	free(g->adj);
+        free(g->rank);
+        free(g->map);
 	free(g);
 }
 
@@ -247,9 +249,11 @@ void ord_core(specialsparse* g){
 	heap=mkheap(n,d0);
 
 	g->rank=malloc(g->n*sizeof(unsigned));
+	g->map=malloc(g->n*sizeof(unsigned));
 	for (i=0;i<g->n;i++){
 		kv=popmin(heap);
 		g->rank[kv.key]=n-(++r);
+                g->map[n-r]=kv.key;
 		for (j=cd0[kv.key];j<cd0[kv.key+1];j++){
 			update(heap,adj0[j]);
 		}
@@ -325,7 +329,7 @@ void kclique(unsigned* clique, unsigned l, unsigned cliqueSize, specialsparse *g
 				(*n)++;//listing here!!!  // NOTE THAT WE COULD DO (*n)+=g->d[2][u] to be much faster (for counting only); !!!!!!!!!!!!!!!!!!
                            printf("# ");
                            for (k=0; k<cliqueSize; ++k) {
-                              printf("%u ", clique[k]);
+                              printf("%u ", g->map[clique[k]]);
                            }
                            printf("\n");
 			}
